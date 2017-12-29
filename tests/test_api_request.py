@@ -5,14 +5,21 @@ from binance.client import Client
 from binance.exceptions import BinanceAPIException, BinanceRequestException, BinanceWithdrawException
 import pytest
 import requests_mock
+import json
+
+with open('secrets.json') as json_data_file:
+    data = json.load(json_data_file)
+print(data)
+
+data['shhh']['read_key']
 
 
-client = Client('api_key', 'api_secret')
+
+client = Client(data['shhh']['read_key'], data['shhh']['read_secret'])
 
 
 def test_invalid_json():
     """Test Invalid response Exception"""
-
     with pytest.raises(BinanceRequestException):
         with requests_mock.mock() as m:
             m.get('https://www.binance.com/exchange/public/product', text='<head></html>')

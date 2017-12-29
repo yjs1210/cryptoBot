@@ -1,3 +1,1 @@
-.tox
-.cache/v/cache
-docs/_build
+secrets.json
