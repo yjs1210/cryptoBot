@@ -25,27 +25,69 @@ def save_object(obj, filename):
     with open(filename, 'wb') as output:
         pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
         
-# sample usage
+xapi_client = XApi()
+
+
+##get balances
+balances = xapi_client.get_holdings()
+
 with open('arb_log.pkl', 'rb') as input:
     df= pickle.load(input)
 
 ##get highest spread 
 latest_time = df.loc[df['time'].idxmax()]['time']
-latest_df = df[((latest_time- df.time) < datetime.timedelta(seconds=5)) & (~df.base_security.isin(arb_bans)) ]
-priority_df = latest_df[(latest_df.security.isin(arb_priority))]
+latest_df = df[((latest_time- df.time) < datetime.timedelta(seconds=5))]
 latest_df
 
-xapi_client = XApi()
-##get balances
-balances = xapi_client.get_holdings()
+#stop if no arbs exists, 
+if len(latest_df) ==0:
+    time.sleep(5)
+    break
 
-##if priority coin exists, then execute right away
-if (len(priority_df)) > 0 :
-    priority_execute = priority_df.loc[priority_df['spread'].idxmax()]    
 
-if 'BTC' not in balances[Exchange.BNC]:
-    raise ValueError("No BTC available in Binance")
+execute = latest_df.loc[latest_df['spread'].idxmax()]
 
+##assign buy exchange
+if(execute['buy_exchange'] =='BTX'):
+    buy_exchange = Exchange.BTX
+else: 
+    buy_exchange = Exchange.BNC
+
+##assign sell exchange
+if(execute['sell_exchange'] =='BTX'):
+    sell_exchange = Exchange.BTX
+else: 
+    sell_exchange = Exchange.BNC
+
+security = execute['base_security']
+
+buy_price = execute['price_buy_exchange']
+
+try:
+   execute_balance = balances[sell_exchange][security]['available']
+##stop go on to the next security if we don't have any to sell
+except KeyError:
+    break
+
+
+##less than .05 BTC trade, not worthwhile
+if(execute_balance*buy_price<.05):
+    break
+
+##we have things to sell, now make sure there are enough BTC's on the other side
+if('BTC' in balances[buy_exchange]):
+     if (balances[buy_exchange]['BTC']['available'] >= .05):
+         buy_with_btc = max(balances[buy_exchange]['BTC']['available'], execute_balance*buy_price )
+
+
+if((sell_exchange=='BTX') &  :
+    
+balances[Exchange.BNC]['MON']['available']
+
+if(buy_exchange=='BNC'):
+if ('BTC' in balances[Exchange.BNC]):
+    if (balances[Exchange.BNC]['BTC']['available'] > .1)
+    
 if 'BTC' not in balances[Exchange.BTX]:
     raise ValueError("No BTC avilable in Bittrex")
 
